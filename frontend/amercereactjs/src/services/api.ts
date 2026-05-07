@@ -21,13 +21,16 @@ http.interceptors.request.use((config) => {
   return config;
 });
 
-// Clear auth on 401
+// Clear auth on 401; surface friendly message on 429
 http.interceptors.response.use(
   (res) => res,
   (err) => {
     if (err.response?.status === 401) {
       localStorage.removeItem("sk_token");
       localStorage.removeItem("sk_user");
+    }
+    if (err.response?.status === 429) {
+      err.message = "Too many requests. Please wait a moment and try again.";
     }
     return Promise.reject(err);
   },

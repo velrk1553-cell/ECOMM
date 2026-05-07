@@ -2,6 +2,29 @@ import { useEffect, useState, useCallback } from "react";
 import { productsAPI, categoriesAPI, bannersAPI, testimonialsAPI, siteSettingsAPI } from "@/services/api";
 import type { ApiProduct, ApiCategory, ApiBanner, ApiTestimonial, ApiSiteSettings, ProductFilters } from "@/services/api";
 
+// ── Request deduplication + TTL cache ─────────────────────────────────────────
+// Prevents 429s caused by multiple components calling the same endpoint
+// simultaneously on page load. Same-key calls within CACHE_TTL share one request.
+
+const CACHE_TTL = 30_000; // 30 s
+const _cache = new Map<string, { data: unknown; ts: number }>();
+const _inflight = new Map<string, Promise<unknown>>();
+
+function dedupeGet<T>(fetcher: () => Promise<T>, key: string): Promise<T> {
+  const hit = _cache.get(key);
+  if (hit && Date.now() - hit.ts < CACHE_TTL) return Promise.resolve(hit.data as T);
+
+  const existing = _inflight.get(key);
+  if (existing) return existing as Promise<T>;
+
+  const promise = fetcher()
+    .then((data) => { _cache.set(key, { data, ts: Date.now() }); return data; })
+    .finally(() => _inflight.delete(key));
+
+  _inflight.set(key, promise);
+  return promise;
+}
+
 // ── useProducts ───────────────────────────────────────────────────────────────
 
 export function useProducts(filters?: ProductFilters) {
@@ -15,7 +38,8 @@ export function useProducts(filters?: ProductFilters) {
     setLoading(true);
     setError(null);
     try {
-      const res = await productsAPI.getAll(filters);
+      const key = `products:${JSON.stringify(filters ?? {})}`;
+      const res = await dedupeGet(() => productsAPI.getAll(filters), key);
       const d = res.data.data;
       setProducts(d.products ?? []);
       setTotal(d.total ?? 0);
@@ -42,7 +66,7 @@ export function useProduct(slug: string) {
   useEffect(() => {
     if (!slug) return;
     setLoading(true);
-    productsAPI.getOne(slug)
+    dedupeGet(() => productsAPI.getOne(slug), `product:${slug}`)
       .then((res) => setProduct(res.data.data))
       .catch(() => setError("Product not found."))
       .finally(() => setLoading(false));
@@ -58,7 +82,7 @@ export function useCollectionBanners() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    bannersAPI.getCollection()
+    dedupeGet(() => bannersAPI.getCollection(), "collection-banners")
       .then((res) => setBanners(res.data.data ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -72,7 +96,7 @@ export function useSpecialProducts(limit = 10) {
   const [loading, setLoading]   = useState(true);
 
   useEffect(() => {
-    productsAPI.getAll({ special_product: 1, limit })
+    dedupeGet(() => productsAPI.getAll({ special_product: 1, limit }), `products:special:${limit}`)
       .then((res) => setProducts(res.data.data.products ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -85,7 +109,7 @@ export function useNavProducts(limit = 4) {
   const [products, setProducts] = useState<ApiProduct[]>([]);
 
   useEffect(() => {
-    productsAPI.getAll({ nav_featured: 1, limit })
+    dedupeGet(() => productsAPI.getAll({ nav_featured: 1, limit }), `products:nav:${limit}`)
       .then((res) => setProducts(res.data.data.products ?? []))
       .catch(() => {});
   }, [limit]);
@@ -100,7 +124,7 @@ export function useCategories() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    categoriesAPI.getAll()
+    dedupeGet(() => categoriesAPI.getAll(), "categories")
       .then((res) => setCategories(res.data.data ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -116,7 +140,7 @@ export function useBanners() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    bannersAPI.getAll()
+    dedupeGet(() => bannersAPI.getAll(), "banners")
       .then((res) => setBanners(res.data.data ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -143,7 +167,7 @@ export function useTestimonials() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    testimonialsAPI.getAll()
+    dedupeGet(() => testimonialsAPI.getAll(), "testimonials")
       .then((res) => setTestimonials(res.data.data ?? []))
       .catch(() => {})
       .finally(() => setLoading(false));
@@ -159,7 +183,7 @@ export function useSiteSettings() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    siteSettingsAPI.get()
+    dedupeGet(() => siteSettingsAPI.get(), "site-settings")
       .then((res) => setSettings(res.data.data))
       .catch(() => {})
       .finally(() => setLoading(false));

@@ -65,8 +65,8 @@ export default function Register({
         setError((res.data as { message?: string }).message ?? "Registration failed.");
       }
     } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string } } })?.response?.data?.message;
-      setError(msg ?? "Registration failed. Please try again.");
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      setError(e?.response?.data?.message ?? e?.message ?? "Registration failed. Please try again.");
     } finally {
       setLoading(false);
     }

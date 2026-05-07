@@ -35,7 +35,8 @@ function Log() {
       login(token, user);
       navigate(redirectTo, { replace: true });
     } catch (err: unknown) {
-      setError((err as { response?: { data?: { message?: string } } })?.response?.data?.message ?? "Invalid email or password.");
+      const e = err as { response?: { data?: { message?: string } }; message?: string };
+      setError(e?.response?.data?.message ?? e?.message ?? "Invalid email or password.");
     } finally {
       setLoading(false);
     }
