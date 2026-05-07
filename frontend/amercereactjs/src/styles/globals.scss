@@ -1,0 +1,58 @@
+@use "../../public/assets/scss/app.scss" as *;
+
+@import "../../public/assets/icon/icomoon/style.css";
+@import "../../public/assets/css/bootstrap.min.css";
+@import "../../public/assets/css/bootstrap-select.min.css";
+@import "../../public/assets/css/swiper-bundle.min.css";
+@import "../../public/assets/css/animate.css";
+@import "../../public/assets/css/image-compare-viewer.min.css";
+@import "../../public/assets/css/photoswipe.css";
+@import "../../public/assets/css/drift-basic.min.css";
+
+/* Product description image strip */
+.product-desc-image-strip {
+  .strip-scroll {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+    scrollbar-width: thin;
+    &::-webkit-scrollbar { height: 3px; }
+    &::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 4px; }
+  }
+  .strip-thumb {
+    flex: 0 0 auto;
+    border: 2px solid transparent;
+    border-radius: 6px;
+    overflow: hidden;
+    cursor: pointer;
+    padding: 0;
+    background: none;
+    transition: border-color 0.15s, transform 0.15s;
+    &:hover { border-color: #9ca3af; transform: scale(1.04); }
+    &.active { border-color: #111827; }
+    img { display: block; width: 64px; height: 80px; object-fit: cover; }
+  }
+  .strip-hint { text-align: center; }
+}
+
+/* HTML content from Quill editor */
+.product-html-content {
+  line-height: 1.7;
+
+  p { margin-bottom: 0.6rem; }
+  ul, ol { padding-left: 1.4rem; margin-bottom: 0.6rem; }
+  li { margin-bottom: 0.25rem; }
+  strong, b { font-weight: 600; }
+  em, i { font-style: italic; }
+  s { text-decoration: line-through; }
+  a { color: inherit; text-decoration: underline; }
+  h1, h2, h3, h4 { font-weight: 600; margin-bottom: 0.4rem; }
+  blockquote { border-left: 4px solid #e5e7eb; padding-left: 1rem; color: #6b7280; margin: 0.6rem 0; }
+  pre { background: #f3f4f6; padding: 0.8rem; border-radius: 4px; font-family: monospace; overflow-x: auto; }
+  table { width: 100%; border-collapse: collapse; margin-bottom: 0.6rem; }
+  td, th { padding: 0.4rem 0.6rem; border: 1px solid #e5e7eb; }
+  img { max-width: 100%; height: auto; border-radius: 4px; }
+  /* Quill outputs inline styles for color/font — allow them */
+  [style] { /* passthrough */ }
+}

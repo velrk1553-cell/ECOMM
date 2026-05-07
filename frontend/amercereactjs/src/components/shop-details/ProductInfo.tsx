@@ -1,0 +1,44 @@
+import { useProduct } from "@/context/useProduct";
+import type { ProductCardItem } from "@/types/productCard";
+import {
+  ProductTitle,
+  ProductPrice,
+  ProductShortDescription,
+  ProductViews,
+  ProductVariantPicker,
+  ProductQuantityBuy,
+  ProductExtraActions,
+  ProductDelivery,
+} from "./product-info";
+
+export default function ProductInfo({ product }: { product: ProductCardItem }) {
+  const { registerPane } = useProduct();
+
+  return (
+    <div className="col-md-6">
+      <div className="tf-product-info-wrap position-relative mt-md-0 sticky-top">
+        <div ref={registerPane} className="tf-zoom-main sticky-top" />
+        <div className="tf-product-info-list other-image-zoom">
+          <div className="tf-product-info-heading">
+            <ProductTitle product={product} />
+            <ProductPrice product={product} />
+            <ProductShortDescription product={product} />
+            <ProductViews product={product} />
+          </div>
+          <div className="br-line" />
+
+          <div className="tf-product-variant">
+            <ProductVariantPicker />
+            <ProductQuantityBuy product={product} />
+          </div>
+
+          <ProductExtraActions />
+
+          <div className="br-line" />
+
+          <ProductDelivery product={product} />
+        </div>
+      </div>
+    </div>
+  );
+}
