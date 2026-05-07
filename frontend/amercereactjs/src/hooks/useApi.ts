@@ -126,13 +126,14 @@ export function useBanners() {
 }
 
 // ── apiImageUrl ───────────────────────────────────────────────────────────────
-/** Convert a backend thumbnail path like "images/products/..." to a full proxied URL. */
+const ASSETS_BASE = (import.meta.env.VITE_ASSETS_BASE_URL ?? "").replace(/\/$/, "");
+
+/** Convert a backend thumbnail path like "images/products/..." to a full URL. */
 export function apiImageUrl(path?: string | null): string {
   if (!path) return "/assets/images/product/product-placeholder.jpg";
   if (path.startsWith("http")) return path;
-  // Encode each path segment so filenames with spaces/brackets work
   const encoded = path.split("/").map(encodeURIComponent).join("/");
-  return `/ecomm/${encoded}`;
+  return ASSETS_BASE ? `${ASSETS_BASE}/${encoded}` : `/ecomm/${encoded}`;
 }
 
 // ── useTestimonials ───────────────────────────────────────────────────────────
