@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/api/:path*",
-      "destination": "https://superfinelabels.in/ecomm/shopkart-api/:path*"
+      "destination": "/api/proxy"
     },
     {
       "source": "/(.*)",
