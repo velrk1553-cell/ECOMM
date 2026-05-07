@@ -6,7 +6,15 @@
 [build.environment]
   NODE_VERSION = "20"
 
-# SPA fallback — send all routes to index.html
+# ── API proxy — avoids CORS entirely ─────────────────────────
+# Browser calls /api/* → Netlify forwards to live PHP backend
+[[redirects]]
+  from   = "/api/*"
+  to     = "https://superfinelabels.in/ecomm/shopkart-api/:splat"
+  status = 200
+  force  = true
+
+# ── SPA fallback — all other routes → index.html ─────────────
 [[redirects]]
   from   = "/*"
   to     = "/index.html"
