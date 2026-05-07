@@ -5,43 +5,41 @@ require_once APPPATH . 'controllers/api/Sk_Base_Api.php';
 
 class Sk_Banner extends Sk_Base_Api {
 
-    /** GET /shopkart-api/banners — hero slides */
     public function index() {
-        $this->api_cache('banners_hero', 120, function () { $this->_banners('hero'); });
-    }
+        $cached = $this->get_cache('banners_hero', 120);
+        if ($cached !== null) return $this->success($cached);
 
-    /** GET /shopkart-api/collection-banners — tabbed collection section */
-    public function collection() {
-        $this->api_cache('banners_collection', 120, function () { $this->_banners('collection'); });
-    }
-
-    /** GET /shopkart-api/offer-banner — single active offer popup */
-    public function offer() {
-        $this->api_cache('banners_offer', 120, function () { $this->_offer_banner(); });
-    }
-
-    private function _banners(string $type): void {
-        $banners = $this->db
-            ->where('status', 1)
-            ->where('type', $type)
-            ->order_by('sort_order', 'ASC')
-            ->get('sk_banners')
-            ->result_array();
-
+        $banners = $this->db->where('status', 1)->where('type', 'hero')
+            ->order_by('sort_order', 'ASC')->get('sk_banners')->result_array();
         $this->_add_image_url($banners);
+
+        $this->set_cache('banners_hero', $banners);
         $this->success($banners);
     }
 
-    private function _offer_banner(): void {
-        $banner = $this->db
-            ->where('status', 1)
-            ->where('type', 'offer')
-            ->order_by('sort_order', 'ASC')
-            ->limit(1)
-            ->get('sk_banners')
-            ->row_array();
+    public function collection() {
+        $cached = $this->get_cache('banners_collection', 120);
+        if ($cached !== null) return $this->success($cached);
 
-        $this->success($banner ?: null);
+        $banners = $this->db->where('status', 1)->where('type', 'collection')
+            ->order_by('sort_order', 'ASC')->get('sk_banners')->result_array();
+        $this->_add_image_url($banners);
+
+        $this->set_cache('banners_collection', $banners);
+        $this->success($banners);
+    }
+
+    public function offer() {
+        $cached = $this->get_cache('banners_offer', 120);
+        if ($cached !== null) return $this->success($cached);
+
+        $banner = $this->db->where('status', 1)->where('type', 'offer')
+            ->order_by('sort_order', 'ASC')->limit(1)->get('sk_banners')->row_array();
+        if ($banner) $this->_add_image_url($arr = [&$banner]);
+
+        $data = $banner ?: null;
+        $this->set_cache('banners_offer', $data);
+        $this->success($data);
     }
 
     private function _add_image_url(&$banners) {
