@@ -1,0 +1,34 @@
+RewriteEngine On
+
+# ── CORS — allow Netlify & any browser origin ─────────────────
+<IfModule mod_headers.c>
+    Header always set Access-Control-Allow-Origin "*"
+    Header always set Access-Control-Allow-Methods "GET, POST, PUT, DELETE, OPTIONS"
+    Header always set Access-Control-Allow-Headers "Content-Type, Authorization, X-Requested-With, X-Session-ID"
+</IfModule>
+
+# Return 200 immediately for preflight OPTIONS requests
+RewriteCond %{REQUEST_METHOD} OPTIONS
+RewriteRule ^(.*)$ $1 [R=200,L]
+
+# Allow direct access to uploads directory and all files in it
+RewriteCond %{REQUEST_URI} ^/(site-real/)?uploads/
+RewriteCond %{REQUEST_FILENAME} -f
+RewriteRule ^(.*)$ - [L]
+
+# Handle service worker requests
+RewriteRule ^firebase-messaging-sw\.js$ firebase-messaging-sw.php [L]
+
+# Set proper headers for service worker
+<Files "firebase-messaging-sw.php">
+    Header set Content-Type "application/javascript"
+    Header set Service-Worker-Allowed "/"
+    Header set Cache-Control "no-cache, no-store, must-revalidate"
+    Header set Pragma "no-cache"
+    Header set Expires "0"
+</Files>
+
+# CodeIgniter URL rewriting
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php/$1 [L]
